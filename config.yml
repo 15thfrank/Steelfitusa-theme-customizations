@@ -1,0 +1,6 @@
+development:
+   theme_id: 118703259798
+   password: <<deleted>>
+   store: steelfitusa.myshopify.com
+   bucket_size: 40
+   refill_rate: 2

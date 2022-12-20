@@ -1,0 +1,97 @@
+{% comment %}
+  The contents of the product.liquid template can be found in /sections/product-template.liquid
+{% endcomment %}
+
+<section class="section has-padding-top">
+  <a name="pagecontent" id="pagecontent"></a>
+  <div class="container">
+
+    {% render 'product__structured-data' %}
+
+    <div class="breadcrumb__wrapper one-whole column">
+      <div class="breadcrumb-collection breadcrumb-collection--product">
+        {% if collection.previous_product or collection.next_product %}
+          <div class="nav_arrows breadcrumb_text">
+            {% if collection.previous_product %}
+              <a href="{{ collection.previous_product }}" title="{{ 'products.general.previous_product_html' | t }}" class="breadcrumb_link"><span class="icon-left-arrow"> {{ 'products.general.previous_product_html' | t }}</span></a>
+            {% endif %}
+            {% if collection.previous_product and collection.next_product %}<span class="breadcrumb-divider"> | </span>{% endif %}
+
+            {% if collection.next_product %}
+              <a href="{{collection.next_product}}" title="{{ 'products.general.next_product_html' | t }}" class="breadcrumb_link">{{ 'products.general.next_product_html' | t }} <span class="icon-right-arrow"></span></a>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% render 'product__breadcrumb' %}
+      </div>
+    </div>
+
+    <section class="section--has-sidebar-option is-flex is-flex-wrap has-padding-top">
+      {% section 'product-sidebar' %}
+      {% section 'product-template' %}
+      {% section 'product-recommendations' %}
+    </section>
+  </div>
+</section>
+<!-- Storetasker @Francis-->
+{%if product.variants.size > 1 %} 
+  <script >
+    (function($) {
+      var variantImages = {},
+        thumbnails,
+        variant,
+        variantImage,
+        optionValue; 
+        {% for variant in product.variants %} variant = {{variant | json}};
+      if (typeof variant.featured_image !== 'undefined' && variant.featured_image !== null) {
+        variantImage = variant.featured_image.src.split('?')[0].replace(/http(s)?:/, '');
+        variantImages[variantImage] = variantImages[variantImage] || {}; 
+        {%for option in product.options %} 
+        {% assign option_value = variant.options[forloop.index0] %} 
+        {% assign option_key = 'option-' | append: forloop.index0 %}
+        if (typeof variantImages[variantImage][{{option_key | json}}] === 'undefined') {
+          variantImages[variantImage][{{option_key | json}}] = {{ option_value | json }};
+        } else {
+          var oldValue = variantImages[variantImage][{{option_key | json}}];
+          if (oldValue !== null && oldValue !== {{option_value | json}}) {
+            variantImages[variantImage][{{option_key | json}}] = null;
+          }
+        } {% endfor %}
+      } {%endfor %}
+      $(function() {
+        thumbnails = $('img[src*="/products/"]').not(':first');
+        if (thumbnails.size()) {
+          thumbnails.bind('click', function() {
+            var image = $(this).attr('src').split('?')[0].replace(/(_thumb\.)|(_small\.)|(_compact\.)|(_medium\.)|(_large\.)|(_grande\.)/, '.');
+            if (typeof variantImages[image] !== 'undefined') {
+              {% for option in product.options %}
+              optionValue = variantImages[image]['option-{{ forloop.index0 }}'];
+              if (optionValue !== null && $('.single-option-selector:eq({{ forloop.index0 }}) option').filter(function() {
+                  return $(this).text() === optionValue
+                }).length) {
+                $('.single-option-selector:eq({{ forloop.index0 }})').val(optionValue).trigger('change');
+              } {% endfor %}
+            }
+          });
+        }
+      });
+    })(jQuery); 
+  </script> 
+  <script>
+    function variantImageSwitch() { 
+      let divs = document.querySelectorAll('.product-gallery__thumbnail');
+        for (i = 0; i < divs.length; ++i){
+          if (divs[i].classList.contains('is-nav-selected')){ //let thumbnails display
+            divs[i].classList.add('displayVariantThumbs');
+            divs[i].classList.remove('hideVariantThumbs');
+          }
+          else {
+            divs[i].classList.add('hideVariantThumbs'); //hide thumbnails
+            divs[i].classList.remove('displayVariantThumbs');
+          };
+
+    };
+    
+  </script> 
+{%  endif %}
